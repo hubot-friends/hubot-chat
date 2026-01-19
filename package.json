@@ -1,0 +1,25 @@
+{
+  "name": "@hubot-friends/hubot-chat",
+  "version": "0.1.0",
+  "description": "A private, ephemeral chat app where Hubot is native",
+  "type": "module",
+  "main": "./src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "test": "node --test tests/**/*.test.mjs",
+    "dev": "node --env-file-if-exists=.env --watch ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs"
+  },
+  "keywords": ["chat", "hubot", "websocket"],
+  "author": "Joey Guerra",
+  "license": "MIT",
+  "engines": {
+    "node": ">=25.0.0"
+  },
+  "dependencies": {
+    "hubot": "^13.0.0",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {}
+}
