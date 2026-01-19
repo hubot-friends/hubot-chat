@@ -1,6 +1,6 @@
 {
   "name": "@hubot-friends/hubot-chat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A private, ephemeral chat app where Hubot is native",
   "type": "module",
   "main": "./src/index.mjs",
@@ -10,11 +10,28 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs",
     "test": "node --test tests/**/*.test.mjs",
-    "dev": "node --env-file-if-exists=.env --watch ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs"
+    "dev": "node --env-file-if-exists=.env --watch ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs",
+    "docker-build": "./docker-build-k3d.sh",
+    "local-deploy": "kubectl config use-context ${KUBE_CONTEXT:-k3d-local} && kubectl apply -f charts/web/deployment.yaml -n ${KUBE_NAMESPACE:-default}",
+    "push": "node --run docker-build && node --run local-deploy"
   },
-  "keywords": ["chat", "hubot", "websocket"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubot-friends/hubot-chat.git"
+  },
+  "keywords": [
+    "chat",
+    "hubot",
+    "websocket",
+    "hubot",
+    "ephemeral"
+  ],
   "author": "Joey Guerra",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hubot-friends/hubot-chat/issues"
+  },
+  "homepage": "https://github.com/hubot-friends/hubot-chat#readme",
   "engines": {
     "node": ">=25.0.0"
   },
@@ -22,5 +39,15 @@
     "hubot": "^13.0.0",
     "ws": "^8.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "release": {
+    "branches": [
+      "main",
+      "next"
+    ],
+    "dryRun": false
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
