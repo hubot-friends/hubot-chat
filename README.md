@@ -150,5 +150,5 @@ HUBOT_CHAT_INVITE_TTL_HOURS=24
 ## Dependencies
 
 - `ws` - WebSocket server
-- `hubot` - Chat bot framework (optional, for scripts)
+- `hubot` - Chat bot framework (for scripts)
 - Node.js 25.2.0+ (for native SQLite support)
