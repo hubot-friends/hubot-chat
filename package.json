@@ -8,6 +8,7 @@
     ".": "./src/index.mjs"
   },
   "scripts": {
+    "start": "node --env-file-if-exists=.env ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs",
     "test": "node --test tests/**/*.test.mjs",
     "dev": "node --env-file-if-exists=.env --watch ./node_modules/hubot/bin/Hubot.mjs -f ./src/index.mjs"
   },
