@@ -2,13 +2,14 @@
 
 A private, ephemeral chat application where Hubot is native.
 
+Package: @hubot-friends/hubot-chat
+
 ## Quick Start
 
 ```bash
-npm install
-npm run dev                          # starts on port 3000
-HUBOT_CHAT_PERSIST=./data/chat.db npm run dev
-node --env-file-if-exists=.env --watch ./node_modules/hubot/bin/Hubot.mjs -a @hubot-friends/hubot-chat
+npx hubot --create myhubot -a @hubot-friends/hubot-chat
+cd myhubot
+npm start
 ```
 
 ## Architecture

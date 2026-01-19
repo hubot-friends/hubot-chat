@@ -13,7 +13,9 @@ If we can code it ourselves, we do.
 
 hubot-chat is a chat application you can spin up instantly with:
 
-npx hubot-chat --port 3000
+npx hubot --create myhubot -a @hubot-friends/hubot-chat
+cd myhubot
+npm start
 
 to host a private, ephemeral conversation with a small group—where
 Hubot is the system and chat is the UI.
@@ -56,7 +58,9 @@ Explicit Non-Goals (Layer 0):
 
 Default Run Mode:
 
-npx hubot-chat --port 3000
+npx hubot --create myhubot -a @hubot-friends/hubot-chat
+cd myhubot
+npm start
 
 - Single Node.js process
 - In-memory only
@@ -71,7 +75,7 @@ npx hubot-chat --port 3000
 
 Optional Persistence:
 
-npx hubot-chat --port 3000 --persist ./data/chat.sqlite
+HUBOT_CHAT_PERSIST=./data/chat.sqlite npm start
 
 - Uses Node’s native SQLite module
 - SQLite tables are insert-only
@@ -294,10 +298,10 @@ Invite validity:
 
 11. CLI Interface
 
-npx hubot-chat --port 3000
-npx hubot-chat --port 3000 --persist ./data/chat.sqlite
-npx hubot-chat --scripts ./external_scripts.json
-npx hubot-chat --invite-ttl-hours 24
+npm start
+HUBOT_CHAT_PERSIST=./data/chat.sqlite npm start
+HUBOT_EXTERNAL_SCRIPTS=./external_scripts.json npm start
+HUBOT_CHAT_INVITE_TTL_HOURS=24 npm start
 
 Session Restore
 - Client stores sessionId in localStorage
@@ -351,7 +355,7 @@ Core constraints:
 🎯 Objective
 
 Implement Layer 0 of hubot-chat:
-	•	npx hubot-chat --port 3000 starts a chat server
+	•	npx @hubot-friends/hubot-chat --port 3000 starts a chat server
 	•	Users join by choosing a nickname (stored in localStorage)
 	•	Multiple rooms exist on day one (public + private)
 	•	Private rooms are joined via single-use invite links
