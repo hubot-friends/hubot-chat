@@ -9,7 +9,7 @@ If we can code it ourselves, we do.
 
 ---------------------------------------------------------------------
 
-0. One-Sentence Concept
+## 0. One-Sentence Concept
 
 hubot-chat is a chat application you can spin up instantly with:
 
@@ -22,7 +22,7 @@ Hubot is the system and chat is the UI.
 
 ---------------------------------------------------------------------
 
-1. Product Intent
+## 1. Product Intent
 
 Hubot has existed since 2013, but it typically lives inside other chat
 systems (Slack, Discord, etc.).
@@ -33,8 +33,8 @@ hubot-chat is the chat app where Hubot is native.
 
 Primary job-to-be-done:
 
-“I want to start up a private instance of chat so I can have an
-ephemeral conversation with some people.”
+> I want to start up a private instance of chat so I can have an
+ephemeral conversation with some people.
 
 Goals:
 - Zero-friction startup (npm install + npx)
@@ -54,7 +54,7 @@ Explicit Non-Goals (Layer 0):
 
 ---------------------------------------------------------------------
 
-2. Default Behavior
+## 2. Default Behavior
 
 Default Run Mode:
 
@@ -84,7 +84,7 @@ HUBOT_CHAT_PERSIST=./data/chat.sqlite npm start
 
 ---------------------------------------------------------------------
 
-3. User Stories (Jobs-To-Be-Done)
+## 3. User Stories (Jobs-To-Be-Done)
 
 1. As a builder, I want to spin up a private chat instance quickly so I
    can gather people for an ephemeral conversation.
@@ -108,7 +108,7 @@ HUBOT_CHAT_PERSIST=./data/chat.sqlite npm start
 
 ---------------------------------------------------------------------
 
-4. Core Concepts (“Atoms”)
+## 4. Core Concepts (“Atoms”)
 
 Session
 - sessionId
@@ -153,7 +153,7 @@ Invariants:
 
 ---------------------------------------------------------------------
 
-5. Room Model
+## 5. Room Model
 
 Public Rooms:
 - Visible to all users
@@ -178,7 +178,7 @@ Room Discovery Rules:
 
 ---------------------------------------------------------------------
 
-6. Invites
+## 6. Invites
 
 Properties:
 - Single-use
@@ -200,7 +200,7 @@ Direct Message Flow:
 
 ---------------------------------------------------------------------
 
-7. UI Specification (Vanilla)
+## 7. UI Specification (Vanilla)
 
 Layout:
 
@@ -225,7 +225,7 @@ Characteristics:
 
 ---------------------------------------------------------------------
 
-8. Transport Protocol (WebSocket)
+## 8. Transport Protocol (WebSocket)
 
 Client to Server:
 - hello { nickname }
@@ -247,7 +247,7 @@ Server to Client:
 
 ---------------------------------------------------------------------
 
-9. Hubot Integration
+## 9. Hubot Integration
 
 Core stance:
 hubot-chat does not implement addressing rules.
@@ -263,13 +263,11 @@ Behavior:
   nickname: hubot
 
 Script loading:
-- Use Hubot external_scripts.json
-- Default path: ./external_scripts.json
-- Override via --scripts
+- Use Hubots built-in design
 
 ---------------------------------------------------------------------
 
-10. Persistence (--persist)
+## 10. Persistence (--persist)
 
 Goals:
 - Insert-only
@@ -296,11 +294,10 @@ Invite validity:
 
 ---------------------------------------------------------------------
 
-11. CLI Interface
+## 11. CLI Interface
 
 npm start
 HUBOT_CHAT_PERSIST=./data/chat.sqlite npm start
-HUBOT_EXTERNAL_SCRIPTS=./external_scripts.json npm start
 HUBOT_CHAT_INVITE_TTL_HOURS=24 npm start
 
 Session Restore
@@ -310,7 +307,7 @@ Session Restore
 
 ---------------------------------------------------------------------
 
-12. XP-Style Implementation Slices
+## 12. XP-Style Implementation Slices
 
 1. WebSocket connect → nickname → messaging
 2. Multiple rooms + switching
@@ -323,7 +320,7 @@ Each slice must produce a usable system.
 
 ---------------------------------------------------------------------
 
-13. Guiding Philosophy
+## 13. Guiding Philosophy
 
 - Start boring
 - Keep the hot path in memory
@@ -336,90 +333,90 @@ It is the simplest chat substrate where Hubot is finally at home.
 
 ---------------------------------------------------------------------
 
-14. Copilot / Codex Build Prompt
+## 14. Copilot / Codex Build Prompt
 
 Context
 
 You are building hubot-chat, a minimal chat application in Node.js where Hubot is the system and chat is the UI.
 
 Core constraints:
-	•	Vanilla HTML, CSS, and JavaScript only (no frameworks)
-	•	Keep third-party dependencies to an absolute minimum
-	•	If something can reasonably be coded, code it instead of installing a package
-	•	Single Node.js process
-	•	WebSocket-based realtime messaging
-	•	Hubot runs in-process and receives all messages
+- Vanilla HTML, CSS, and JavaScript only (no frameworks)
+- Keep third-party dependencies to an absolute minimum
+- If something can reasonably be coded, code it instead of installing a package
+- Single Node.js process
+- WebSocket-based realtime messaging
+- Hubot runs in-process and receives all messages
 
 ⸻
 
 🎯 Objective
 
 Implement Layer 0 of hubot-chat:
-	•	npx @hubot-friends/hubot-chat --port 3000 starts a chat server
-	•	Users join by choosing a nickname (stored in localStorage)
-	•	Multiple rooms exist on day one (public + private)
-	•	Private rooms are joined via single-use invite links
-	•	Invite links expire after first use or after 24 hours
-	•	Users see:
-	•	all public rooms
-	•	only private rooms they are members of
-	•	DM rooms for one-to-one chats
-	•	Unlimited message history in memory until restart
-	•	Optional persistence via --persist <sqlite path>
-	•	Hubot is always running and receives all messages
-	•	Hubot scripts decide what to hear/respond to
+- npx @hubot-friends/hubot-chat --port 3000 starts a chat server
+- Users join by choosing a nickname (stored in localStorage)
+- Multiple rooms exist on day one (public + private)
+- Private rooms are joined via single-use invite links
+- Invite links expire after first use or after 24 hours
+- Users see:
+- all public rooms
+- only private rooms they are members of
+- DM rooms for one-to-one chats
+- Unlimited message history in memory until restart
+- Optional persistence via --persist <sqlite db file path>
+- Hubot is always running and receives all messages
+- Hubot scripts decide what to hear/respond to
 
 ⸻
 
 🧠 Architectural Decisions (Do Not Change)
-	•	Chat server is the Hubot runtime
-	•	Chat messages are forwarded to robot.receive() unconditionally
-	•	Hubot output is rendered as chat messages from:
-	•	sessionId: "hubot"
-	•	nickname: "hubot"
-	•	No addressing logic in chat layer
-	•	No auth, roles, permissions, or enterprise features
-	•	DMs are implemented as private rooms
+- Chat server is the Hubot runtime
+- Chat messages are forwarded to robot.receive() unconditionally
+- Hubot output is rendered as chat messages from:
+- sessionId: "hubot"
+- nickname: "hubot"
+- No addressing logic in chat layer
+- No auth, roles, permissions, or enterprise features
+- DMs are implemented as private rooms
 
 ⸻
 
 🧩 Core Domain Concepts
 
 Implement these in-memory structures:
-	•	Session { sessionId, nickname, createdAt }
-	•	Room { roomId, name, visibility, createdAt, createdBySessionId }
-	•	Membership { roomId, sessionId, joinedAt }
-	•	Message { messageId, roomId, sessionId, nickname, text, createdAt }
-	•	Invite { inviteId, roomId, tokenHash, expiresAt }
-	•	DirectMessageRoom { roomId, name, sessionIdA, sessionIdB }
+- Session { sessionId, nickname, createdAt }
+- Room { roomId, name, visibility, createdAt, createdBySessionId }
+- Membership { roomId, sessionId, joinedAt }
+- Message { messageId, roomId, sessionId, nickname, text, createdAt }
+- Invite { inviteId, roomId, tokenHash, expiresAt }
+- DirectMessageRoom { roomId, name, sessionIdA, sessionIdB }
 
 Rules:
-	•	Messages are immutable
-	•	Membership changes are append-only
-	•	Invites are single-use and time-limited
-	•	Server timestamps are authoritative
+- Messages are immutable
+- Membership changes are append-only
+- Invites are single-use and time-limited
+- Server timestamps are authoritative
 
 ⸻
 
 🔌 WebSocket Protocol
 
 Client → Server
-	•	hello { nickname }
-	•	hello { nickname, sessionId }
-	•	room.create { name, visibility }
-	•	room.join { roomId }
-	•	room.joinByInvite { inviteToken }
-	•	message.send { roomId, text }
-	•	dm.start { nickname }
+- hello { nickname }
+- hello { nickname, sessionId }
+- room.create { name, visibility }
+- room.join { roomId }
+- room.joinByInvite { inviteToken }
+- message.send { roomId, text }
+- dm.start { nickname }
 
 Server → Client
-	•	state.init
-	•	room.created
-	•	room.joined
-	•	message.new
-	•	user.joined
-	•	user.left
-	•	error
+- state.init
+- room.created
+- room.joined
+- message.new
+- user.joined
+- user.left
+- error
 
 ⸻
 
@@ -441,86 +438,85 @@ Server → Client
 ⸻
 
 🔒 Private Room + Invite Logic
-	•	Private rooms require invite token
-	•	Invite link:
-	•	single-use
-	•	expires after first successful join
-	•	expires after 24 hours by default
-	•	After successful join:
-	•	invite is immediately consumed
-	•	room appears in user’s room list
+- Private rooms require invite token
+- Invite link:
+- single-use
+- expires after first successful join
+- expires after 24 hours by default
+- After successful join:
+- invite is immediately consumed
+- room appears in user’s room list
 
 💬 Direct Messages
-	•	Users can start a DM by nickname
-	•	DM creates a private room with two members
-	•	Only connected users are discoverable
-	•	Recipient is not auto-joined
-	•	Recipient sees a blue unread dot until opening the DM
+- Users can start a DM by nickname
+- DM creates a private room with two members
+- Only connected users are discoverable
+- Recipient is not auto-joined
+- Recipient sees a blue unread dot until opening the DM
 
 ⸻
 
 🤖 Hubot Integration
-	•	Run Hubot in-process
-	•	Load scripts using Hubot external_scripts.json
-	•	Forward all accepted messages to robot.receive()
-	•	Convert Hubot output into chat messages
-	•	Do not implement command routing or filtering
+- Run Hubot in-process
+- Chat bot developers can just leverage Hubot's script loading design (e.g. scripts in `scripts/` folder)
+- Forward all accepted messages to robot.receive()
+- Convert Hubot output into chat messages
+- Do not implement command routing or filtering
 
 ⸻
 
 💾 Optional Persistence (--persist)
-	•	Use Node’s native SQLite module
-	•	Insert-only tables
-	•	In-memory state is authoritative
-	•	Async persistence only (never block message delivery)
+- Use Node’s native SQLite module
+- Insert-only tables
+- In-memory state is authoritative
+- Async persistence only (never block message delivery)
 
 Tables:
-	•	rooms
-	•	memberships (append-only)
-	•	messages (append-only)
-	•	invites
-	•	invite_events (created | consumed)
+- rooms
+- memberships (append-only)
+- messages (append-only)
+- invites
+- invite_events (created | consumed)
 
 Invite validity:
-	•	created event exists
-	•	no consumed event
-	•	now < expires_ts
+- created event exists
+- no consumed event
+- now < expires_ts
 
 ⸻
 
 🛠️ CLI Interface
 
 Support:
-	•	--port <number>
-	•	--persist <sqlite path>
-	•	--scripts <external_scripts.json path>
-	•	--invite-ttl-hours <number> (default 24)
+- --port <number>
+- --persist <sqlite path>
+- --invite-ttl-hours <number> (default 24)
 
 ⸻
 
 🧪 Implementation Guidance
-	•	Build in thin vertical slices
-	•	Start with:
+- Build in thin vertical slices
+- Start with:
 	1.	WebSocket connect → nickname → lobby messaging
 	2.	Multiple rooms
 	3.	Private rooms + invites
 	4.	Direct messages by nickname
 	5.	Hubot adapter
 	6.	SQLite persistence
-	•	Prefer clarity over cleverness
-	•	Write code that is easy to debug
+- Prefer clarity over cleverness
+- Write code that is easy to debug
 
 ⸻
 
 🚫 Explicitly Do NOT Implement
-	•	OAuth / SSO
-	•	Permissions
-	•	Notifications
-	•	Threads
-	•	Reactions
-	•	Presence indicators
-	•	Frontend frameworks
-	•	Large dependency trees
+- OAuth / SSO
+- Permissions
+- Notifications
+- Threads
+- Reactions
+- Presence indicators
+- Frontend frameworks
+- Large dependency trees
 
 ⸻
 
