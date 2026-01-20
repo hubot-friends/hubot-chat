@@ -333,7 +333,7 @@ It is the simplest chat substrate where Hubot is finally at home.
 
 ---------------------------------------------------------------------
 
-## 14. Copilot / Codex Build Prompt
+## 14. LLM Build Prompt
 
 Context
 
