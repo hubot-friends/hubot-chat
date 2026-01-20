@@ -9,6 +9,8 @@ class ChatClient {
     this.users = new Map()
     this.unreadRooms = new Set()
     this.pendingInviteToken = this.getInviteTokenFromUrl()
+    this.reconnectAttempts = 0
+    this.reconnectTimer = null
 
     this.cacheElements()
     this.setupEventListeners()
@@ -69,6 +71,12 @@ class ChatClient {
       if (event.key === 'Enter') this.sendMessage()
     })
     this.sendBtn.addEventListener('click', () => this.sendMessage())
+
+    document.addEventListener('visibilitychange', () => {
+      if (!this.isPageVisible()) return
+      if (!this.nickname) return
+      if (!this.ws || this.ws.readyState === 3) this.scheduleReconnect()
+    })
   }
 
   hydrateNickname () {
@@ -101,12 +109,17 @@ class ChatClient {
   }
 
   connect () {
+    if (!this.nickname) return
+    if (this.ws && (this.ws.readyState === 0 || this.ws.readyState === 1)) return
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     this.ws = new WebSocket(`${protocol}//${window.location.host}`)
 
     const storedSessionId = localStorage.getItem('hubot-chat-session-id')
 
     this.ws.addEventListener('open', () => {
+      this.reconnectAttempts = 0
+      this.clearReconnectTimer()
       this.ws.send(JSON.stringify({
         type: 'hello',
         payload: { nickname: this.nickname, sessionId: storedSessionId }
@@ -120,11 +133,43 @@ class ChatClient {
 
     this.ws.addEventListener('close', () => {
       console.log('WebSocket closed')
+      this.scheduleReconnect()
     })
 
     this.ws.addEventListener('error', (error) => {
       console.error('WebSocket error:', error)
     })
+  }
+
+  isPageVisible () {
+    return document.visibilityState === 'visible'
+  }
+
+  clearReconnectTimer () {
+    if (!this.reconnectTimer) return
+    clearTimeout(this.reconnectTimer)
+    this.reconnectTimer = null
+  }
+
+  scheduleReconnect () {
+    if (!this.isPageVisible()) return
+    if (!this.nickname) return
+    if (this.reconnectTimer) return
+    if (this.ws && this.ws.readyState === 1) return
+
+    const baseDelayMs = 500
+    const maxDelayMs = 30000
+    const expDelay = Math.min(maxDelayMs, baseDelayMs * 2 ** this.reconnectAttempts)
+    const jitter = Math.floor(expDelay * 0.2 * Math.random())
+    const delay = expDelay + jitter
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null
+      if (!this.isPageVisible()) return
+      if (this.ws && this.ws.readyState === 1) return
+      this.reconnectAttempts += 1
+      this.connect()
+    }, delay)
   }
 
   handleMessage (msg) {
