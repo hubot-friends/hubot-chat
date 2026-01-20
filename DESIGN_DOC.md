@@ -347,8 +347,6 @@ Core constraints:
 - WebSocket-based realtime messaging
 - Hubot runs in-process and receives all messages
 
-⸻
-
 🎯 Objective
 
 Implement Layer 0 of hubot-chat:
@@ -366,8 +364,6 @@ Implement Layer 0 of hubot-chat:
 - Hubot is always running and receives all messages
 - Hubot scripts decide what to hear/respond to
 
-⸻
-
 🧠 Architectural Decisions (Do Not Change)
 - Chat server is the Hubot runtime
 - Chat messages are forwarded to robot.receive() unconditionally
@@ -377,8 +373,6 @@ Implement Layer 0 of hubot-chat:
 - No addressing logic in chat layer
 - No auth, roles, permissions, or enterprise features
 - DMs are implemented as private rooms
-
-⸻
 
 🧩 Core Domain Concepts
 
@@ -395,8 +389,6 @@ Rules:
 - Membership changes are append-only
 - Invites are single-use and time-limited
 - Server timestamps are authoritative
-
-⸻
 
 🔌 WebSocket Protocol
 
@@ -418,8 +410,6 @@ Server → Client
 - user.left
 - error
 
-⸻
-
 🖥️ UI Requirements (Vanilla)
 - Mobile first
 - Responsive design
@@ -434,8 +424,6 @@ Server → Client
 - “Direct message” button
 - DM search modal by nickname
 - No unread counts, no threads, no reactions
-
-⸻
 
 🔒 Private Room + Invite Logic
 - Private rooms require invite token
@@ -454,16 +442,12 @@ Server → Client
 - Recipient is not auto-joined
 - Recipient sees a blue unread dot until opening the DM
 
-⸻
-
 🤖 Hubot Integration
 - Run Hubot in-process
 - Chat bot developers can just leverage Hubot's script loading design (e.g. scripts in `scripts/` folder)
 - Forward all accepted messages to robot.receive()
 - Convert Hubot output into chat messages
 - Do not implement command routing or filtering
-
-⸻
 
 💾 Optional Persistence (--persist)
 - Use Node’s native SQLite module
@@ -483,16 +467,12 @@ Invite validity:
 - no consumed event
 - now < expires_ts
 
-⸻
-
 🛠️ CLI Interface
 
 Support:
 - --port <number>
 - --persist <sqlite path>
 - --invite-ttl-hours <number> (default 24)
-
-⸻
 
 🧪 Implementation Guidance
 - Build in thin vertical slices
@@ -506,8 +486,6 @@ Support:
 - Prefer clarity over cleverness
 - Write code that is easy to debug
 
-⸻
-
 🚫 Explicitly Do NOT Implement
 - OAuth / SSO
 - Permissions
@@ -517,8 +495,6 @@ Support:
 - Presence indicators
 - Frontend frameworks
 - Large dependency trees
-
-⸻
 
 Private Rooms
 Enable a user who joins a private room with an invite to refresh and still participate by restoring their sessionId.
