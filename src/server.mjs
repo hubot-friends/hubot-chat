@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync, mkdirSync } from 'fs'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { WebSocketServer } from 'ws'
 import { SessionManager } from './session.mjs'
@@ -12,6 +12,11 @@ import { Persistence } from './persistence.mjs'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const publicDir = join(__dirname, '../public')
 
+function ensurePersistDirectory (persistPath) {
+  const dir = dirname(persistPath)
+  mkdirSync(dir, { recursive: true })
+}
+
 export function createChatService ({ httpServer, router, options = {}, onUserMessage }) {
   const sessions = new SessionManager()
   const rooms = new RoomManager()
@@ -21,34 +26,40 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
 
   let persistence = null
   if (options.persistPath) {
-    persistence = new Persistence(options.persistPath)
+    try {
+      ensurePersistDirectory(options.persistPath)
+      persistence = new Persistence(options.persistPath)
 
-    const persistedRooms = persistence.loadRooms()
-    for (const room of persistedRooms) {
-      rooms.rooms.set(room.roomId, room)
-      if (!rooms.memberships.has(room.roomId)) {
-        rooms.memberships.set(room.roomId, [])
+      const persistedRooms = persistence.loadRooms()
+      for (const room of persistedRooms) {
+        rooms.rooms.set(room.roomId, room)
+        if (!rooms.memberships.has(room.roomId)) {
+          rooms.memberships.set(room.roomId, [])
+        }
       }
-    }
 
-    const persistedMemberships = persistence.loadMemberships()
-    for (const mem of persistedMemberships) {
-      rooms.addMember(mem.roomId, mem.sessionId, mem.joinedAt)
-    }
-
-    const persistedMessages = persistence.loadMessages()
-    for (const msg of persistedMessages) {
-      messages.importMessage(msg)
-    }
-
-    const persistedInvites = persistence.loadInvites()
-    const inviteEvents = persistence.loadInviteEvents()
-    for (const inv of persistedInvites) {
-      if (!inviteEvents.created.has(inv.tokenHash)) continue
-      invites.importInvite(inv)
-      if (inviteEvents.consumed.has(inv.tokenHash)) {
-        invites.markConsumed(inv.tokenHash)
+      const persistedMemberships = persistence.loadMemberships()
+      for (const mem of persistedMemberships) {
+        rooms.addMember(mem.roomId, mem.sessionId, mem.joinedAt)
       }
+
+      const persistedMessages = persistence.loadMessages()
+      for (const msg of persistedMessages) {
+        messages.importMessage(msg)
+      }
+
+      const persistedInvites = persistence.loadInvites()
+      const inviteEvents = persistence.loadInviteEvents()
+      for (const inv of persistedInvites) {
+        if (!inviteEvents.created.has(inv.tokenHash)) continue
+        invites.importInvite(inv)
+        if (inviteEvents.consumed.has(inv.tokenHash)) {
+          invites.markConsumed(inv.tokenHash)
+        }
+      }
+    } catch (error) {
+      console.error('Persistence disabled:', error?.message || error)
+      persistence = null
     }
   }
 
