@@ -24,7 +24,50 @@ export class HubotChatAdapter extends Hubot.Adapter {
       onUserMessage: (message) => this.receiveFromClient(message)
     })
 
+    // Register authentication and authorization hooks if provided
+    if (this.options.authHooks) {
+      for (const hook of this.options.authHooks) {
+        this.chatService.hooks.registerAuthHook(hook)
+      }
+    }
+
+    if (this.options.authzHooks) {
+      for (const hook of this.options.authzHooks) {
+        this.chatService.hooks.registerAuthzHook(hook)
+      }
+    }
+
     this.emit('connected')
+  }
+
+  /**
+   * Register an authentication hook
+   * @param {Function} hook - async (sessionId, nickname, payload) => { allowed, sessionId, nickname, reason }
+   */
+  registerAuthHook (hook) {
+    if (this.chatService) {
+      this.chatService.hooks.registerAuthHook(hook)
+    } else {
+      if (!this.options.authHooks) {
+        this.options.authHooks = []
+      }
+      this.options.authHooks.push(hook)
+    }
+  }
+
+  /**
+   * Register an authorization hook
+   * @param {Function} hook - async (action, context) => { allowed, reason }
+   */
+  registerAuthzHook (hook) {
+    if (this.chatService) {
+      this.chatService.hooks.registerAuthzHook(hook)
+    } else {
+      if (!this.options.authzHooks) {
+        this.options.authzHooks = []
+      }
+      this.options.authzHooks.push(hook)
+    }
   }
 
   send (envelope, ...strings) {

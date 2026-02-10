@@ -8,6 +8,7 @@ import { RoomManager } from './room.mjs'
 import { MessageStore } from './message.mjs'
 import { InviteManager } from './invite.mjs'
 import { Persistence } from './persistence.mjs'
+import { HookManager } from './hooks.mjs'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const publicDir = join(__dirname, '../public')
@@ -22,6 +23,7 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   const rooms = new RoomManager()
   const messages = new MessageStore()
   const invites = new InviteManager()
+  const hooks = new HookManager()
   const inviteTtlHours = options.inviteTtlHours || 24
 
   let persistence = null
@@ -86,10 +88,10 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   wss.on('connection', (ws) => {
     let sessionId = null
 
-    ws.on('message', (data) => {
+    ws.on('message', async (data) => {
       try {
         const msg = JSON.parse(data)
-        handleMessage(ws, msg)
+        await handleMessage(ws, msg)
       } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
@@ -107,13 +109,21 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
       }, sessionId)
     })
 
-    function handleMessage (socket, msg) {
+    async function handleMessage (socket, msg) {
       const { type, payload } = msg
 
       if (type === 'hello') {
         if (!payload?.nickname) return
         const requestedSessionId = payload?.sessionId
-        const session = sessions.getOrCreateSession(requestedSessionId, payload.nickname)
+        
+        // Run authentication hooks
+        const authResult = await hooks.authenticate(requestedSessionId, payload.nickname, payload)
+        if (!authResult.allowed) {
+          sendError(socket, authResult.reason || 'Authentication failed')
+          return
+        }
+        
+        const session = sessions.getOrCreateSession(authResult.sessionId, authResult.nickname)
         sessionId = session.sessionId
         wsConnections.set(sessionId, socket)
 
@@ -169,6 +179,19 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
           return
         }
 
+        // Run authorization hooks
+        const session = sessions.getSession(sessionId)
+        const authzResult = await hooks.authorize('room.create', {
+          sessionId,
+          nickname: session?.nickname,
+          roomName: name,
+          visibility
+        })
+        if (!authzResult.allowed) {
+          sendError(socket, authzResult.reason || 'Not authorized to create room')
+          return
+        }
+
         const room = rooms.createRoom(name, visibility, sessionId)
         rooms.addMember(room.roomId, sessionId)
 
@@ -206,6 +229,20 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
 
         if (room.visibility === 'private' && !rooms.isMember(roomId, sessionId)) {
           sendError(socket, 'Cannot join private room')
+          return
+        }
+
+        // Run authorization hooks
+        const session = sessions.getSession(sessionId)
+        const authzResult = await hooks.authorize('room.join', {
+          sessionId,
+          nickname: session?.nickname,
+          roomId,
+          roomName: room.name,
+          visibility: room.visibility
+        })
+        if (!authzResult.allowed) {
+          sendError(socket, authzResult.reason || 'Not authorized to join room')
           return
         }
 
@@ -257,6 +294,20 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
         }
 
         const session = sessions.getSession(sessionId)
+        
+        // Run authorization hooks
+        const authzResult = await hooks.authorize('message.send', {
+          sessionId,
+          nickname: session?.nickname,
+          roomId,
+          roomName: room.name,
+          text
+        })
+        if (!authzResult.allowed) {
+          sendError(socket, authzResult.reason || 'Not authorized to send message')
+          return
+        }
+
         const message = messages.addMessage(roomId, sessionId, session.nickname, text)
 
         if (persistence) persistence.persistMessage(message)
@@ -280,6 +331,20 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
 
         if (targetSession.sessionId === sessionId) {
           sendError(socket, 'Cannot DM yourself')
+          return
+        }
+
+        const session = sessions.getSession(sessionId)
+        
+        // Run authorization hooks
+        const authzResult = await hooks.authorize('dm.start', {
+          sessionId,
+          nickname: session?.nickname,
+          targetNickname: nickname,
+          targetSessionId: targetSession.sessionId
+        })
+        if (!authzResult.allowed) {
+          sendError(socket, authzResult.reason || 'Not authorized to start DM')
           return
         }
 
@@ -419,6 +484,7 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
     messages,
     invites,
     persistence,
+    hooks,
     handleHubotSend (roomId, text) {
       if (!roomId || !text) return
       const message = messages.addMessage(roomId, 'hubot', 'hubot', text)
