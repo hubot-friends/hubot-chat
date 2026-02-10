@@ -1,7 +1,7 @@
 // Example: Rate Limiting
 // This example shows how to implement rate limiting for messages
 
-module.exports = (robot) => {
+export default (robot) => {
   const adapter = robot.adapter
   
   if (!adapter.registerAuthzHook) {

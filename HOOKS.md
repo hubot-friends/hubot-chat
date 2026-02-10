@@ -396,8 +396,8 @@ adapter.registerAuthzHook(async (action, context) => {
 Create a Hubot script that registers hooks:
 
 ```javascript
-// scripts/security.js
-module.exports = (robot) => {
+// scripts/security.mjs
+export default (robot) => {
   const adapter = robot.adapter
   
   if (adapter.registerAuthHook) {
@@ -488,10 +488,10 @@ test('Authentication hook blocks banned users', async (t) => {
 ## Examples Repository
 
 For complete working examples, see the `examples/` directory in the repository:
-- `examples/basic-auth.js` - Simple authentication hook
-- `examples/rate-limiting.js` - Message rate limiting
-- `examples/content-filter.js` - Content filtering hook
-- `examples/role-based-access.js` - Role-based authorization
+- `examples/basic-auth.mjs` - Simple authentication hook
+- `examples/rate-limiting.mjs` - Message rate limiting
+- `examples/content-filter.mjs` - Content filtering hook
+- `examples/role-based-access.mjs` - Role-based authorization
 
 ## Support
 

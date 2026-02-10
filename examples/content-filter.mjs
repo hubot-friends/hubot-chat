@@ -1,7 +1,7 @@
 // Example: Content Filtering and Moderation
 // This example shows how to implement content filtering
 
-module.exports = (robot) => {
+export default (robot) => {
   const adapter = robot.adapter
   
   if (!adapter.registerAuthzHook) {

@@ -1,7 +1,7 @@
 // Example: Role-Based Access Control
 // This example shows how to implement role-based authorization
 
-module.exports = (robot) => {
+export default (robot) => {
   const adapter = robot.adapter
   
   if (!adapter.registerAuthHook || !adapter.registerAuthzHook) {

@@ -4,26 +4,26 @@ This directory contains practical examples of how to use authentication and auth
 
 ## Available Examples
 
-### 1. basic-auth.js
+### 1. basic-auth.mjs
 Simple authentication examples including:
 - Blocking reserved nicknames
 - Normalizing nicknames (lowercase, removing special chars)
 - Optional token-based authentication
 
-### 2. content-filter.js
+### 2. content-filter.mjs
 Content filtering and moderation including:
 - Profanity filtering
 - Excessive caps detection
 - Message length limits
 - Repeated character detection
 
-### 3. rate-limiting.js
+### 3. rate-limiting.mjs
 Rate limiting for abuse prevention including:
 - Message rate limiting (max messages per minute)
 - Room creation cooldown
 - Automatic cleanup of old tracking data
 
-### 4. role-based-access.js
+### 4. role-based-access.mjs
 Role-based access control including:
 - User role assignment during authentication
 - Room creation permissions by role
@@ -40,7 +40,7 @@ These examples are written as Hubot scripts. To use them:
 
 ```bash
 # Copy the example to your Hubot's scripts directory
-cp examples/basic-auth.js /path/to/your/hubot/scripts/
+cp examples/basic-auth.mjs /path/to/your/hubot/scripts/
 
 # Restart your Hubot
 npm start
@@ -51,8 +51,8 @@ npm start
 You can also copy the hook registration code into your own Hubot scripts:
 
 ```javascript
-// In scripts/my-security.js
-module.exports = (robot) => {
+// In scripts/my-security.mjs
+export default (robot) => {
   const adapter = robot.adapter
   
   // Copy hook registration code from examples here
@@ -102,9 +102,9 @@ You can use multiple examples together. Each script registers its own hooks, and
 
 ```bash
 # Copy multiple examples to your scripts directory
-cp examples/basic-auth.js scripts/
-cp examples/rate-limiting.js scripts/
-cp examples/content-filter.js scripts/
+cp examples/basic-auth.mjs scripts/
+cp examples/rate-limiting.mjs scripts/
+cp examples/content-filter.mjs scripts/
 ```
 
 Hooks from all scripts will run in the order the scripts are loaded.

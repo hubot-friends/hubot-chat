@@ -1,8 +1,8 @@
 // Example: Basic Authentication Hook
 // This example shows how to add simple authentication to hubot-chat
 
-// In your Hubot script (e.g., scripts/auth.js)
-module.exports = (robot) => {
+// In your Hubot script (e.g., scripts/auth.mjs)
+export default (robot) => {
   const adapter = robot.adapter
   
   // Only register hooks if the adapter supports them
