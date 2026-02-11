@@ -13,12 +13,19 @@ import { HookManager } from './hooks.mjs'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const publicDir = join(__dirname, '../public')
 
+function normalizeBasePath (basePath) {
+  if (!basePath) return ''
+  if (basePath === '/') return ''
+  if (!basePath.startsWith('/')) basePath = '/' + basePath
+  return basePath.replace(/\/$/, '')
+}
 function ensurePersistDirectory (persistPath) {
   const dir = dirname(persistPath)
   mkdirSync(dir, { recursive: true })
 }
 
 export function createChatService ({ httpServer, router, options = {}, onUserMessage }) {
+  const basePath = normalizeBasePath(options.basePath || process.env.HUBOT_CHAT_BASE_PATH || '')
   const sessions = new SessionManager()
   const rooms = new RoomManager()
   const messages = new MessageStore()
@@ -68,14 +75,14 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   const generalRoom = rooms.ensureRoom('general', 'public', 'system')
   if (persistence) persistence.persistRoom(generalRoom)
 
-  registerRoutes(router)
+  registerRoutes(router, basePath)
 
   const wss = new WebSocketServer({ noServer: true })
   const wsConnections = new Map()
 
   httpServer.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url || '/', 'http://localhost')
-    if (url.pathname !== '/') {
+    if (url.pathname !== basePath + '/' && url.pathname !== basePath) {
       socket.destroy()
       return
     }
@@ -494,12 +501,15 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   }
 }
 
-function registerRoutes (router) {
+function registerRoutes (router, basePath = '') {
   if (!router) return
 
-  router.get('/', (req, res) => {
+  // Serve index.html
+  router.get(basePath + '/', (req, res) => {
     try {
-      const html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
+      let html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
+      // Inject basePath for client-side asset loading
+      html = html.replace(/__BASE_PATH__/g, basePath)
       res.type('html').send(html)
     } catch (error) {
       console.error(error)
@@ -507,7 +517,8 @@ function registerRoutes (router) {
     }
   })
 
-  router.get('/style.css', (req, res) => {
+  // Serve style.css
+  router.get(basePath + '/style.css', (req, res) => {
     try {
       const css = readFileSync(join(publicDir, 'style.css'), 'utf-8')
       res.type('text/css').send(css)
@@ -517,7 +528,8 @@ function registerRoutes (router) {
     }
   })
 
-  router.get('/client.mjs', (req, res) => {
+  // Serve client.mjs
+  router.get(basePath + '/client.mjs', (req, res) => {
     try {
       const js = readFileSync(join(publicDir, 'client.mjs'), 'utf-8')
       res.type('text/javascript').send(js)
