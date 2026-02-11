@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto'
-import { readFileSync, mkdirSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { mkdir } from 'fs/promises'
+import { dirname } from 'path'
 import { WebSocketServer } from 'ws'
 import { SessionManager } from './session.mjs'
 import { RoomManager } from './room.mjs'
@@ -9,9 +8,7 @@ import { MessageStore } from './message.mjs'
 import { InviteManager } from './invite.mjs'
 import { Persistence } from './persistence.mjs'
 import { HookManager } from './hooks.mjs'
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
-const publicDir = join(__dirname, '../public')
+import { registerHttpRoutes } from './http-server.mjs'
 
 function normalizeBasePath (basePath) {
   if (!basePath) return ''
@@ -19,12 +16,13 @@ function normalizeBasePath (basePath) {
   if (!basePath.startsWith('/')) basePath = '/' + basePath
   return basePath.replace(/\/$/, '')
 }
-function ensurePersistDirectory (persistPath) {
+
+async function ensurePersistDirectory (persistPath) {
   const dir = dirname(persistPath)
-  mkdirSync(dir, { recursive: true })
+  await mkdir(dir, { recursive: true })
 }
 
-export function createChatService ({ httpServer, router, options = {}, onUserMessage }) {
+export async function createChatService ({ httpServer, router, options = {}, onUserMessage, uiProvider }) {
   const basePath = normalizeBasePath(options.basePath || process.env.HUBOT_CHAT_BASE_PATH || '')
   const sessions = new SessionManager()
   const rooms = new RoomManager()
@@ -36,7 +34,7 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   let persistence = null
   if (options.persistPath) {
     try {
-      ensurePersistDirectory(options.persistPath)
+      await ensurePersistDirectory(options.persistPath)
       persistence = new Persistence(options.persistPath)
 
       const persistedRooms = persistence.loadRooms()
@@ -75,7 +73,8 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
   const generalRoom = rooms.ensureRoom('general', 'public', 'system')
   if (persistence) persistence.persistRoom(generalRoom)
 
-  registerRoutes(router, basePath)
+  // Register HTTP routes for UI serving (if UI provider is present)
+  registerHttpRoutes(router, uiProvider, basePath)
 
   const wss = new WebSocketServer({ noServer: true })
   const wsConnections = new Map()
@@ -102,7 +101,7 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
       } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
-          error: 'Invalid JSON'
+          error
         }))
       }
     })
@@ -499,43 +498,4 @@ export function createChatService ({ httpServer, router, options = {}, onUserMes
       broadcastToRoom(roomId, { type: 'message.new', payload: message })
     }
   }
-}
-
-function registerRoutes (router, basePath = '') {
-  if (!router) return
-
-  // Serve index.html
-  router.get(basePath + '/', (req, res) => {
-    try {
-      let html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
-      // Inject basePath for client-side asset loading
-      html = html.replace(/__BASE_PATH__/g, basePath)
-      res.type('html').send(html)
-    } catch (error) {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    }
-  })
-
-  // Serve style.css
-  router.get(basePath + '/style.css', (req, res) => {
-    try {
-      const css = readFileSync(join(publicDir, 'style.css'), 'utf-8')
-      res.type('text/css').send(css)
-    } catch (error) {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    }
-  })
-
-  // Serve client.mjs
-  router.get(basePath + '/client.mjs', (req, res) => {
-    try {
-      const js = readFileSync(join(publicDir, 'client.mjs'), 'utf-8')
-      res.type('text/javascript').send(js)
-    } catch (error) {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    }
-  })
 }

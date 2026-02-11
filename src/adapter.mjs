@@ -1,14 +1,16 @@
-import Hubot from 'hubot'
+import { Adapter, TextMessage } from 'hubot'
 import { createChatService } from './server.mjs'
+import { DefaultUIProvider } from './default-ui-provider.mjs'
+import { AuthUIProvider, CustomUIProvider } from './auth-ui-provider.mjs'
 
-export class HubotChatAdapter extends Hubot.Adapter {
+export class HubotChatAdapter extends Adapter {
   constructor (robot, options = {}) {
     super(robot)
     this.options = options
     this.chatService = null
   }
 
-  run () {
+  async run () {
     const httpServer = getHttpServer(this.robot)
     const router = this.robot.router
 
@@ -17,11 +19,22 @@ export class HubotChatAdapter extends Hubot.Adapter {
       return
     }
 
-    this.chatService = createChatService({
+    // Create appropriate UI provider based on options
+    const uiProvider = this.createUIProvider()
+
+    // If auth config is provided with a handler, register it as an auth hook
+    if (this.options.auth?.handler) {
+      this.registerAuthHook(async (sessionId, nickname, payload) => {
+        return await this.options.auth.handler(payload, sessionId, nickname)
+      })
+    }
+
+    this.chatService = await createChatService({
       httpServer,
       router,
       options: this.options,
-      onUserMessage: (message) => this.receiveFromClient(message)
+      onUserMessage: (message) => this.receiveFromClient(message),
+      uiProvider
     })
 
     // Register authentication and authorization hooks if provided
@@ -38,6 +51,30 @@ export class HubotChatAdapter extends Hubot.Adapter {
     }
 
     this.emit('connected')
+  }
+
+  /**
+   * Create the appropriate UI provider based on options
+   * @private
+   */
+  createUIProvider () {
+    // Tier 3: Explicit UI provider (custom or null for headless)
+    if (this.options.uiProvider !== undefined) {
+      return this.options.uiProvider
+    }
+
+    // Tier 3: Custom HTML path
+    if (this.options.customHtml) {
+      return new CustomUIProvider(this.options.customHtml)
+    }
+
+    // Tier 2: Auth configuration provided
+    if (this.options.auth) {
+      return new AuthUIProvider(this.options.auth)
+    }
+
+    // Tier 1: Default (nickname-based auth)
+    return new DefaultUIProvider()
   }
 
   /**
@@ -97,7 +134,7 @@ export class HubotChatAdapter extends Hubot.Adapter {
 
     user.room = message.roomId
 
-    const hubotMessage = new Hubot.TextMessage(
+    const hubotMessage = new TextMessage(
       user,
       message.text,
       message.messageId

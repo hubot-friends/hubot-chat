@@ -27,7 +27,7 @@ npm start
 ### Key Features
 
 - **In-Memory by Default**: All data lives in memory until restart
-- **Optional Persistence**: Use `--persist ./data.db` to save to SQLite
+- **Optional Persistence**: Use `HUBOT_CHAT_PERSIST` environment variable to save to SQLite
 - **WebSocket Protocol**: Real-time chat via WebSockets
 - **Public + Private Rooms**: Public rooms visible to all, private rooms join via invite
 - **Single-Use Invites**: Invite tokens expire after first use or 24 hours

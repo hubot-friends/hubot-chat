@@ -267,7 +267,7 @@ Script loading:
 
 ---------------------------------------------------------------------
 
-## 10. Persistence (--persist)
+## 10. Persistence (HUBOT_CHAT_PERSIST)
 
 Goals:
 - Insert-only
@@ -314,7 +314,7 @@ Session Restore
 3. Private rooms + invite join
 4. Direct messages by nickname
 5. Hubot runtime + adapter
-6. SQLite persistence (--persist)
+6. SQLite persistence (HUBOT_CHAT_PERSIST)
 
 Each slice must produce a usable system.
 
@@ -360,7 +360,7 @@ Implement Layer 0 of hubot-chat:
 - only private rooms they are members of
 - DM rooms for one-to-one chats
 - Unlimited message history in memory until restart
-- Optional persistence via --persist <sqlite db file path>
+- Optional persistence via HUBOT_CHAT_PERSIST environment variable
 - Hubot is always running and receives all messages
 - Hubot scripts decide what to hear/respond to
 
@@ -449,7 +449,7 @@ Server → Client
 - Convert Hubot output into chat messages
 - Do not implement command routing or filtering
 
-💾 Optional Persistence (--persist)
+💾 Optional Persistence (HUBOT_CHAT_PERSIST)
 - Use Node’s native SQLite module
 - Insert-only tables
 - In-memory state is authoritative
@@ -471,7 +471,7 @@ Invite validity:
 
 Support:
 - --port <number>
-- --persist <sqlite path>
+- HUBOT_CHAT_PERSIST=<sqlite path>
 - --invite-ttl-hours <number> (default 24)
 
 🧪 Implementation Guidance

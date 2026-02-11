@@ -7,6 +7,9 @@ export { MessageStore } from './message.mjs'
 export { InviteManager } from './invite.mjs'
 export { Persistence } from './persistence.mjs'
 export { HubotChatAdapter } from './adapter.mjs'
+export { UIProvider, NullUIProvider } from './ui-provider.mjs'
+export { DefaultUIProvider } from './default-ui-provider.mjs'
+export { AuthUIProvider, CustomUIProvider } from './auth-ui-provider.mjs'
 
 export default {
 	use (robot) {

@@ -4,13 +4,13 @@ import { createServer } from 'http'
 import { WebSocket } from 'ws'
 import { createChatService } from '../src/server.mjs'
 
-function createTestServer (options = {}) {
+async function createTestServer (options = {}) {
   const httpServer = createServer()
   const router = {
     get: () => {}
   }
   
-  const service = createChatService({
+  const service = await createChatService({
     httpServer,
     router,
     options,
@@ -21,7 +21,7 @@ function createTestServer (options = {}) {
 }
 
 test('Server integration: authentication hook allows connection', async (t) => {
-  const { httpServer, service } = createTestServer()
+  const { httpServer, service } = await createTestServer()
   
   service.hooks.registerAuthHook(async (sessionId, nickname, payload) => {
     return { allowed: true, sessionId, nickname }
@@ -54,7 +54,7 @@ test('Server integration: authentication hook allows connection', async (t) => {
 })
 
 test('Server integration: authentication hook denies connection', async (t) => {
-  const { httpServer, service } = createTestServer()
+  const { httpServer, service } = await createTestServer()
   
   service.hooks.registerAuthHook(async (sessionId, nickname, payload) => {
     if (nickname === 'banned') {
@@ -89,7 +89,7 @@ test('Server integration: authentication hook denies connection', async (t) => {
 })
 
 test('Server integration: authorization hook allows room creation', async (t) => {
-  const { httpServer, service } = createTestServer()
+  const { httpServer, service } = await createTestServer()
   
   service.hooks.registerAuthzHook(async (action, context) => {
     return { allowed: true }
@@ -131,7 +131,7 @@ test('Server integration: authorization hook allows room creation', async (t) =>
 })
 
 test('Server integration: authorization hook denies room creation', async (t) => {
-  const { httpServer, service } = createTestServer()
+  const { httpServer, service } = await createTestServer()
   
   service.hooks.registerAuthzHook(async (action, context) => {
     if (action === 'room.create' && context.roomName === 'forbidden') {
@@ -174,7 +174,7 @@ test('Server integration: authorization hook denies room creation', async (t) =>
 })
 
 test('Server integration: authorization hook denies message send', async (t) => {
-  const { httpServer, service } = createTestServer()
+  const { httpServer, service } = await createTestServer()
   
   service.hooks.registerAuthzHook(async (action, context) => {
     if (action === 'message.send' && context.text && context.text.includes('spam')) {
