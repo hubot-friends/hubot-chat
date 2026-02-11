@@ -16,7 +16,7 @@ test('Server: creates persistence directory when missing', async () => {
 
   assert.equal(existsSync(join(baseDir, 'nested')), false)
 
-  const service = createChatService({
+  const service = await createChatService({
     httpServer: createHttpServerStub(),
     router: null,
     options: { persistPath }

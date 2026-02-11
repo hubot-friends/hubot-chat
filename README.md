@@ -27,11 +27,12 @@ npm start
 ### Key Features
 
 - **In-Memory by Default**: All data lives in memory until restart
-- **Optional Persistence**: Use `--persist ./data.db` to save to SQLite
+- **Optional Persistence**: Use `HUBOT_CHAT_PERSIST` environment variable to save to SQLite
 - **WebSocket Protocol**: Real-time chat via WebSockets
 - **Public + Private Rooms**: Public rooms visible to all, private rooms join via invite
 - **Single-Use Invites**: Invite tokens expire after first use or 24 hours
 - **Hubot Integration**: All messages forwarded to Hubot for processing
+- **Pluggable Authentication & Authorization**: Custom hooks for auth and access control ([see HOOKS.md](HOOKS.md))
 - **Vanilla UI**: No frameworks, pure HTML/CSS/JavaScript
 - **Mobile-First Responsive Design**: Touch-friendly interface that adapts from mobile to desktop
 
@@ -140,6 +141,37 @@ The database is append-only:
 - Invite Events: append-only
 
 State is recovered on startup by replaying persisted data.
+
+## Authentication & Authorization Hooks
+
+Hubot-chat supports pluggable authentication and authorization via hooks. This enables you to:
+- Control who can connect to the chat system
+- Control what actions users can perform (create rooms, send messages, etc.)
+- Integrate with external authentication systems
+- Implement custom business logic
+
+For complete documentation and examples, see [HOOKS.md](HOOKS.md).
+
+### Quick Example
+
+```javascript
+// In your Hubot script or initialization
+adapter.registerAuthHook(async (sessionId, nickname, payload) => {
+  // Verify authentication token
+  if (!payload.authToken) {
+    return { allowed: false, reason: 'Authentication required' }
+  }
+  return { allowed: true, sessionId, nickname }
+})
+
+adapter.registerAuthzHook(async (action, context) => {
+  // Only moderators can create rooms
+  if (action === 'room.create' && !context.nickname.startsWith('mod-')) {
+    return { allowed: false, reason: 'Only moderators can create rooms' }
+  }
+  return { allowed: true }
+})
+```
 
 ## Configuration
 

@@ -132,4 +132,5 @@ configuration
 external-scripts.json
 scripts
 
-data/
+data
+.data
