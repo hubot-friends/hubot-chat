@@ -74,11 +74,16 @@ function getInviteTtlHours () {
   return Number.isNaN(parsed) ? 24 : parsed
 }
 
+function getBasePath () {
+  return process.env.HUBOT_CHAT_BASE_PATH || ''
+}
+
 export default {
   use (robot) {
     const options = {
       persistPath: process.env.HUBOT_CHAT_PERSIST || null,
-      inviteTtlHours: getInviteTtlHours()
+      inviteTtlHours: getInviteTtlHours(),
+      basePath: getBasePath()
     }
 
     return new HubotChatAdapter(robot, options)
